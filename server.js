@@ -9,20 +9,20 @@ const HOST_KEY = process.env.HOST_KEY || 'xmas';
 
 const ALLQ = [
  {q:"Jaguar began life in 1922 as the Swallow Sidecar Company. What did it originally make?",o:["Bicycle frames","Motorcycle sidecars","Baby prams","Aircraft parts"],a:1,f:"William Lyons and William Walmsley started out making sidecars in Blackpool."},
- {q:"SS Cars renamed itself 'Jaguar' in 1945. Why drop 'SS'?",o:["A trademark dispute with Rolls-Royce","A merger with Daimler","A new marketing slogan","The initials had unfortunate wartime associations"],a:3,f:"After WWII, 'SS' was no longer a name anyone wanted on a car."},
- {q:"At which motor show was the first Land Rover unveiled in April 1948?",o:["Paris","Amsterdam","Geneva","London"],a:1,f:"The Series I debuted in Amsterdam, aimed at farmers and export markets."},
+ {img:'q02.jpg',q:"SS Cars renamed itself 'Jaguar' in 1945. Why drop 'SS'?",o:["A trademark dispute with Rolls-Royce","A merger with Daimler","A new marketing slogan","The initials had unfortunate wartime associations"],a:3,f:"After WWII, 'SS' was no longer a name anyone wanted on a car."},
+ {img:'q03.jpg',q:"At which motor show was the first Land Rover unveiled in April 1948?",o:["Paris","Amsterdam","Geneva","London"],a:1,f:"The Series I debuted in Amsterdam, aimed at farmers and export markets."},
  {q:"Which vehicle inspired the original Land Rover design?",o:["Austin Champ","Citroën 2CV","Willys Jeep","Fordson tractor"],a:2,f:"Rover's Maurice Wilks used a war-surplus Willys Jeep on his Welsh farm."},
  {q:"The first Land Rovers came in a very limited colour range. What colour were they?",o:["Bright red","Sky blue","Black","Light green"],a:3,f:"Commonly told story: leftover aircraft cockpit paint, so green it was."},
- {q:"The Jaguar E-Type was unveiled in 1961 at which Swiss city's motor show?",o:["Geneva","Zurich","Basel","Bern"],a:0,f:"Enzo Ferrari reportedly called it the most beautiful car ever made."},
- {q:"How many overall Le Mans 24 Hours wins has Jaguar achieved?",o:["3","5","7","9"],a:2,f:"Five in the 1950s (1951-57) plus 1988 and 1990."},
- {q:"In 1971 a Range Rover was displayed in which famous museum as an 'exhibit of industrial design'?",o:["MoMA, New York","The Louvre, Paris","V&A, London","Science Museum, London"],a:1,f:"The original Range Rover launched in 1970 and was treated as a design icon."},
+ {img:'q06.jpg',q:"The Jaguar E-Type was unveiled in 1961 at which Swiss city's motor show?",o:["Geneva","Zurich","Basel","Bern"],a:0,f:"Enzo Ferrari reportedly called it the most beautiful car ever made."},
+ {img:'q07.jpg',q:"How many overall Le Mans 24 Hours wins has Jaguar achieved?",o:["3","5","7","9"],a:2,f:"Five in the 1950s (1951-57) plus 1988 and 1990."},
+ {img:'q08.jpg',q:"In 1971 a Range Rover was displayed in which famous museum as an 'exhibit of industrial design'?",o:["MoMA, New York","The Louvre, Paris","V&A, London","Science Museum, London"],a:1,f:"The original Range Rover launched in 1970 and was treated as a design icon."},
  {q:"Which Land Rover launched in 1989 as a family-friendly seven-seater?",o:["Freelander","Evoque","Discovery","Velar"],a:2,f:"It took Land Rover beyond the farm and the Range Rover's price point."},
  {q:"Which carmaker bought Jaguar in 1989 (and Land Rover in 2000)?",o:["Ford","BMW","General Motors","Toyota"],a:0,f:"Ford owned both brands until 2008."},
  {q:"In 2008 Tata Motors bought Jaguar and Land Rover from Ford. Roughly how much did it pay?",o:["$500 million","$1.2 billion","$2.3 billion","$6 billion"],a:2,f:"Roughly $2.3bn. The two brands were merged into one company, JLR, in 2013."},
- {q:"Which Jaguar did TV detective Inspector Morse drive?",o:["E-Type","XJ6","XK120","Mark 2"],a:3,f:"A burgundy 1960 Mark 2 was Morse's trademark."},
- {q:"Which British monarch was famously a keen Land Rover driver, owning many over her life?",o:["Queen Victoria","King Charles II","Queen Elizabeth II","King Edward VII"],a:2,f:"Queen Elizabeth II drove Land Rovers around her estates for decades."},
- {q:"Which celebrity was a design consultant on the 2011 Range Rover Evoque?",o:["Kate Moss","Victoria Beckham","Lewis Hamilton","Naomi Campbell"],a:1,f:"Victoria Beckham worked on the Evoque, including a special edition."},
- {q:"Which West Midlands town has been home to Land Rover production since 1948?",o:["Halewood","Castle Bromwich","Solihull","Wolverhampton"],a:2,f:"Solihull is the historic home of Land Rover and Range Rover."},
+ {img:'q12.jpg',q:"Which Jaguar did TV detective Inspector Morse drive?",o:["E-Type","XJ6","XK120","Mark 2"],a:3,f:"A burgundy 1960 Mark 2 was Morse's trademark."},
+ {q:"Which British monarch was famously a keen Land Rover driver, owning many over their life?",o:["Queen Victoria","King Charles II","Queen Elizabeth II","King Edward VII"],a:2,f:"Queen Elizabeth II drove Land Rovers around her estates for decades."},
+ {img:'q14.jpg',q:"Which celebrity was a design consultant on the 2011 Range Rover Evoque?",o:["Kate Moss","Victoria Beckham","Lewis Hamilton","Naomi Campbell"],a:1,f:"Victoria Beckham worked on the Evoque, including a special edition."},
+ {img:'q15.jpg',q:"Which West Midlands town has been home to Land Rover production since 1948?",o:["Halewood","Castle Bromwich","Solihull","Wolverhampton"],a:2,f:"Solihull is the historic home of Land Rover and Range Rover."},
  // ---- Round 2: Name that Bond car (photos live in the images/ folder; missing photos are simply hidden) ----
  {r:2,img:'bond1.jpg',q:"Name this Jaguar. One chased Bond's Aston Martin DB10 through Rome in Spectre.",o:["Jaguar F-Type","Jaguar XJ220","Jaguar C-X75","Jaguar XKR"],a:2,f:"The C-X75 was a hybrid concept; for filming it was fitted with a supercharged 5.0-litre V8."},
  {r:2,img:['bond4a.jpg','bond4b.jpg'],q:"Land Rover and the Bond franchise began their long-running partnership with the debut of a custom Range Rover Convertible in 1983's Octopussy. What was the model known as?",o:["Carmichael Commando","Monteverdi Safari","Rapport Huntsman","Overfinch Sportsman"],a:2,f:"Rapport built the Huntsman as an open-top, eight-seater conversion of the Range Rover."},
@@ -56,7 +56,7 @@ function viewFor(c){
   const b=board(), base={phase:S.phase,q:S.q,total:Q.length,nPlayers:S.players.size};
   base.quiz=S.quiz; base.title=TITLES[S.quiz]; base.round=base.title;
   const c0=Q[S.q];
-  if(c0){ if(c0.img&&(S.phase==='question'||S.phase==='reveal')) base.imgs=[].concat(c0.img).map(f=>'/img/'+f); }
+  if(c0){ if(c0.img&&(S.phase==='question'||S.phase==='reveal')) { base.imgs=[].concat(c0.img).map(f=>'/img/'+f); base.img=base.imgs[0]; } }
   if(c.role==='host'||c.role==='board'){
     base.board=b.map(({name,score,rank})=>({name,score,rank}));
     base.answered=[...S.players.values()].filter(p=>p.answers[S.q]).length;
@@ -89,8 +89,8 @@ const server = http.createServer(async (req,res)=>{
   const u=new URL(req.url,'http://x'); const path=u.pathname;
   const isHost=u.searchParams.get('key')===HOST_KEY;
   if(req.method==='GET'){
-    if(path==='/') { res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(PLAYER); }
-    if(path==='/host'){ if(!isHost){res.writeHead(403);return res.end('Forbidden – add ?key=YOURKEY')} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(HOST); }
+    if(path==='/') { res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}); return res.end(PLAYER); }
+    if(path==='/host'){ if(!isHost){res.writeHead(403);return res.end('Forbidden – add ?key=YOURKEY')} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}); return res.end(HOST); }
     if(path.startsWith('/img/')){
       const fn=require('path').basename(decodeURIComponent(path.slice(5)));
       if(!/^[\w.-]+\.(jpe?g|png|webp|gif)$/i.test(fn)){res.writeHead(404);return res.end()}
@@ -101,7 +101,7 @@ const server = http.createServer(async (req,res)=>{
       res.writeHead(200,{'Content-Type':'image/'+ext,'Cache-Control':'public, max-age=3600'});
       return fs.createReadStream(f).pipe(res);
     }
-    if(path==='/board'){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(BOARD); }
+    if(path==='/board'){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}); return res.end(BOARD); }
     if(path==='/events'){
       const role=u.searchParams.get('role')||'player';
       if(role==='host'&&!isHost){res.writeHead(403);return res.end()}
