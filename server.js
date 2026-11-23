@@ -160,7 +160,7 @@ input{width:100%;padding:14px;font-size:18px;border:2px solid #ddd;border-radius
 const PLAYER = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>JLR Quiz</title><style>${CSS}
 .opts{display:flex;flex-direction:column;gap:12px;margin-top:16px}
 .opt{display:flex;align-items:center;gap:14px;text-align:left;min-height:84px;padding:12px 16px;font-size:19px;font-weight:600;border:0;border-radius:16px;color:#fff;width:100%}
-img.car{width:100%;max-height:26vh;object-fit:cover;border-radius:14px;margin-top:8px}
+img.car{display:block;margin-left:auto;margin-right:auto;max-width:100%;max-height:32vh;width:auto;height:auto;object-fit:contain;border-radius:14px;margin-top:8px}
 .opt b{font-size:40px;font-weight:800;min-width:40px;text-align:center}
 .o0{background:#b3202a}.o1{background:#1c5fa8}.o2{background:#c9892b}.o3{background:#2a8a4a}
 .opt.dim{opacity:.25}.opt.pick{outline:6px solid #fff}.opt.right{outline:6px solid #fff;box-shadow:0 0 0 12px #2fd36a}
@@ -209,7 +209,7 @@ es.onmessage=e=>{const v=JSON.parse(e.data);
  let h='';const L='ABCD';
  if(v.phase==='lobby'){h='<div class="card"><h1>Lobby – '+v.title+'</h1>'+picker(v)+'<p><b>'+v.nPlayers+'</b> players joined.</p>'+(v.next?'<p class="small">First question: '+v.next.text+'</p>':'')+'<button class="btn" onclick="act(\\'next\\')">Start quiz → Question 1</button></div>'}
  else if(v.phase==='question'||v.phase==='reveal'){const c=v.cur;
-  h='<div class="card"><div class="small" style="color:#b3202a">'+v.round+'</div><div class="q">'+(v.q+1)+'. '+c.text+'</div>'+(v.imgs?v.imgs.map(u=>'<img src="'+u+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin:8px 0" onerror="this.style.display=\\'none\\'">').join(''):'')+c.options.map((o,i)=>'<div class="opt'+(v.phase==='reveal'&&i===c.correct?' ok':'')+'"><span>'+L[i]+'. '+o+(i===c.correct?' ✔':'')+'</span><span>'+v.counts[i]+'</span></div>').join('')+
+  h='<div class="card"><div class="small" style="color:#b3202a">'+v.round+'</div><div class="q">'+(v.q+1)+'. '+c.text+'</div>'+(v.imgs?v.imgs.map(u=>'<img src="'+u+'" style="max-width:100%;max-height:260px;width:auto;height:auto;display:block;margin:8px auto;object-fit:contain;border-radius:8px;margin:8px 0" onerror="this.style.display=\\'none\\'">').join(''):'')+c.options.map((o,i)=>'<div class="opt'+(v.phase==='reveal'&&i===c.correct?' ok':'')+'"><span>'+L[i]+'. '+o+(i===c.correct?' ✔':'')+'</span><span>'+v.counts[i]+'</span></div>').join('')+
   '<p class="small">Answered: '+v.answered+' / '+v.nPlayers+'</p>'+(v.phase==='reveal'?'<p>💡 '+c.fact+'</p>':'')+'</div>';
   if(v.phase==='question')h+='<button class="btn" onclick="act(\\'reveal\\')">Close answers &amp; reveal</button>';
   else h+='<button class="btn" onclick="act(\\'next\\')">'+(v.q+1>=v.total?'Finish – final results':'Next question → '+(v.q+2))+'</button>'+(v.next?'<div class="card"><b>Coming up:</b> '+v.next.text+'</div>':'');}
