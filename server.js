@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const HOST_KEY = process.env.HOST_KEY || 'xmas';
 
-const Q = [
+const ALLQ = [
  {q:"Jaguar began life in 1922 as the Swallow Sidecar Company. What did it originally make?",o:["Bicycle frames","Motorcycle sidecars","Baby prams","Aircraft parts"],a:1,f:"William Lyons and William Walmsley started out making sidecars in Blackpool."},
  {q:"SS Cars renamed itself 'Jaguar' in 1945. Why drop 'SS'?",o:["A trademark dispute with Rolls-Royce","A merger with Daimler","A new marketing slogan","The initials had unfortunate wartime associations"],a:3,f:"After WWII, 'SS' was no longer a name anyone wanted on a car."},
  {q:"At which motor show was the first Land Rover unveiled in April 1948?",o:["Paris","Amsterdam","Geneva","London"],a:1,f:"The Series I debuted in Amsterdam, aimed at farmers and export markets."},
@@ -22,13 +22,25 @@ const Q = [
  {q:"Which Jaguar did TV detective Inspector Morse drive?",o:["E-Type","XJ6","XK120","Mark 2"],a:3,f:"A burgundy 1960 Mark 2 was Morse's trademark."},
  {q:"Which British monarch was famously a keen Land Rover driver, owning many over her life?",o:["Queen Victoria","King Charles II","Queen Elizabeth II","King Edward VII"],a:2,f:"Queen Elizabeth II drove Land Rovers around her estates for decades."},
  {q:"Which celebrity was a design consultant on the 2011 Range Rover Evoque?",o:["Kate Moss","Victoria Beckham","Lewis Hamilton","Naomi Campbell"],a:1,f:"Victoria Beckham worked on the Evoque, including a special edition."},
- {q:"Which West Midlands town has been home to Land Rover production since 1948?",o:["Halewood","Castle Bromwich","Solihull","Wolverhampton"],a:2,f:"Solihull is the historic home of Land Rover and Range Rover."}
+ {q:"Which West Midlands town has been home to Land Rover production since 1948?",o:["Halewood","Castle Bromwich","Solihull","Wolverhampton"],a:2,f:"Solihull is the historic home of Land Rover and Range Rover."},
+ // ---- Round 2: Name that Bond car (photos live in the images/ folder; missing photos are simply hidden) ----
+ {r:2,img:'bond1.jpg',q:"Name this Jaguar. One chased Bond's Aston Martin DB10 through Rome in Spectre.",o:["Jaguar F-Type","Jaguar XJ220","Jaguar C-X75","Jaguar XKR"],a:2,f:"The C-X75 was a hybrid concept; for filming it was fitted with a supercharged 5.0-litre V8."},
+ {r:2,img:'bond2.jpg',q:"Name this Land Rover. Modified 'Big Foot' versions starred in Spectre's snowy Austrian chase.",o:["Discovery","Defender","Freelander","Range Rover Classic"],a:1,f:"Defenders have appeared in several Bond films, including No Time to Die."},
+ {r:2,img:'bond3.jpg',q:"Name this Range Rover, which appeared in both Spectre and No Time to Die.",o:["Range Rover Velar","Range Rover Evoque","Range Rover Sport SVR","Discovery Sport"],a:2,f:"JLR's Special Vehicle Operations supplied the Sport SVRs."},
+ {r:2,q:"Land Rover's Bond partnership began with 1983's Octopussy. Which model appeared, as a convertible?",o:["Series III","Discovery","Range Rover","Defender 90"],a:2,f:"The Range Rover Convertible was Land Rover's Bond debut."},
+ {r:2,img:'bond5.jpg',q:"Name this Jaguar, which appeared in 2002's Die Another Day.",o:["Jaguar XJ6","Jaguar XKR","Jaguar XJ220","Jaguar E-Type"],a:1,f:"The XKR was the supercharged sports Jaguar of the era."},
+ {r:2,img:'bond6.jpg',q:"In 2021 Land Rover launched a limited Defender V8 Bond Edition inspired by which film?",o:["Skyfall","Spectre","No Time to Die","Casino Royale"],a:2,f:"It celebrated the 25th Bond film."},
+ {r:2,img:'bond7.jpg',q:"Name this classic Land Rover model, which also appeared in No Time to Die.",o:["Range Rover Classic","Discovery Series I","Series III","Freelander"],a:0,f:"JLR said No Time to Die featured a Range Rover Classic, a Series III and several Defenders."}
 ];
+// Two separate quizzes, each with its own players and leaderboard. Host switches between them.
+const QUIZ = {history:ALLQ.filter(x=>!x.r), bond:ALLQ.filter(x=>x.r===2)};
+const TITLES = {history:'JLR History Quiz', bond:'Name that Bond Car'};
+let Q = QUIZ.history;
 const L = 'ABCD';
 const BASE = 100, BONUS = 50, BONUS_MS = 20000;
 
 let S = fresh();
-function fresh(){ return {phase:'lobby', q:-1, openedAt:0, players:new Map()}; }
+function fresh(quiz){ quiz=quiz||'history'; Q=QUIZ[quiz]; return {quiz, phase:'lobby', q:-1, openedAt:0, players:new Map()}; }
 const clients = new Set();
 
 function board(){
@@ -45,6 +57,9 @@ function counts(){
 }
 function viewFor(c){
   const b=board(), base={phase:S.phase,q:S.q,total:Q.length,nPlayers:S.players.size};
+  base.quiz=S.quiz; base.title=TITLES[S.quiz]; base.round=base.title;
+  const c0=Q[S.q];
+  if(c0){ if(c0.img&&(S.phase==='question'||S.phase==='reveal')) base.img='/img/'+c0.img; }
   if(c.role==='host'||c.role==='board'){
     base.board=b.map(({name,score,rank})=>({name,score,rank}));
     base.answered=[...S.players.values()].filter(p=>p.answers[S.q]).length;
@@ -79,6 +94,16 @@ const server = http.createServer(async (req,res)=>{
   if(req.method==='GET'){
     if(path==='/') { res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(PLAYER); }
     if(path==='/host'){ if(!isHost){res.writeHead(403);return res.end('Forbidden – add ?key=YOURKEY')} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(HOST); }
+    if(path.startsWith('/img/')){
+      const fn=require('path').basename(decodeURIComponent(path.slice(5)));
+      if(!/^[\w.-]+\.(jpe?g|png|webp|gif)$/i.test(fn)){res.writeHead(404);return res.end()}
+      const fs=require('fs'),P=require('path');
+      const f=[P.join(__dirname,'images',fn),P.join(__dirname,fn)].find(x=>fs.existsSync(x));
+      if(!f){res.writeHead(404);return res.end()}
+      const ext=P.extname(f).slice(1).toLowerCase().replace('jpg','jpeg');
+      res.writeHead(200,{'Content-Type':'image/'+ext,'Cache-Control':'public, max-age=3600'});
+      return fs.createReadStream(f).pipe(res);
+    }
     if(path==='/board'){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(BOARD); }
     if(path==='/events'){
       const role=u.searchParams.get('role')||'player';
@@ -119,7 +144,8 @@ const server = http.createServer(async (req,res)=>{
       } else if(a==='reveal' && S.phase==='question'){
         S.players.forEach(p=>{const x=p.answers[S.q]; if(x) p.score+=x.pts});
         S.phase='reveal';
-      } else if(a==='reset'){ S=fresh(); }
+      } else if(a==='reset'){ S=fresh(S.quiz); }
+      else if(a==='quiz' && QUIZ[b.quiz]){ S=fresh(b.quiz); }
       push(); return json(res,200,{ok:true});
     }
   }
@@ -137,6 +163,7 @@ input{width:100%;padding:14px;font-size:18px;border:2px solid #ddd;border-radius
 const PLAYER = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>JLR Quiz</title><style>${CSS}
 .opts{display:flex;flex-direction:column;gap:12px;margin-top:16px}
 .opt{display:flex;align-items:center;gap:14px;text-align:left;min-height:84px;padding:12px 16px;font-size:19px;font-weight:600;border:0;border-radius:16px;color:#fff;width:100%}
+img.car{width:100%;max-height:34vh;object-fit:cover;border-radius:14px;margin-top:8px}
 .opt b{font-size:40px;font-weight:800;min-width:40px;text-align:center}
 .o0{background:#b3202a}.o1{background:#1c5fa8}.o2{background:#c9892b}.o3{background:#2a8a4a}
 .opt.dim{opacity:.25}.opt.pick{outline:6px solid #fff}.opt.right{outline:6px solid #fff;box-shadow:0 0 0 12px #2fd36a}
@@ -153,8 +180,8 @@ function head(){return '<div class="small center">'+view.you.name+' · '+view.yo
 function render(){
  if(view.unknown){id=null;try{localStorage.removeItem('jlr_id')}catch(e){}return joinForm()}
  const ph=view.phase;let h=head();
- if(ph==='lobby')h+='<div class="center card"><h1>You are in! 🎉</h1><p>Waiting for the host to start…</p></div>';
- else if(ph==='question'){const ch=view.you.chosen;h+='<div class="center"><h1>Question '+(view.q+1)+' of '+view.total+'</h1><p class="small">'+(ch==null?'Pick your answer':'Locked in – waiting for the reveal…')+'</p></div><div class="opts">'+
+ if(ph==='lobby')h+='<div class="center card"><h1>You are in! 🎉</h1><p><b>'+view.title+'</b></p><p>Waiting for the host to start…</p></div>';
+ else if(ph==='question'){const ch=view.you.chosen;h+='<div class="center"><div class="small gold">'+view.round+'</div><h1>Question '+(view.q+1)+' of '+view.total+'</h1><p class="small">'+(ch==null?'Pick your answer':'Locked in – waiting for the reveal…')+'</p>'+(view.img?'<img class="car" src="'+view.img+'" onerror="this.style.display=\\'none\\'">':'')+'</div><div class="opts">'+
   [0,1,2,3].map(i=>'<button class="opt o'+i+(ch!=null&&ch!==i?' dim':'')+(ch===i?' pick':'')+'" '+(ch!=null?'disabled':'')+' onclick="pick('+i+')"><b>'+'ABCD'[i]+'</b><span>'+view.options[i]+'</span></button>').join('')+'</div>'}
  else if(ph==='reveal'){const ch=view.you.chosen,ok=ch===view.correct;
   h+='<div class="center card"><div class="big">'+(ch==null?'⏱️':ok?'✅':'❌')+'</div><h1>'+(ch==null?'No answer':ok?'Correct! +'+view.you.pts:'Not this time')+'</h1><p>Answer: <b>'+'ABCD'[view.correct]+'</b></p><p class="small">'+view.fact+'</p></div><div class="center"><p>Score <b>'+view.you.score+'</b> · Rank <b>'+view.you.rank+'</b> of '+view.nPlayers+'</p></div>'}
@@ -175,19 +202,21 @@ const HOST = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewp
 const key=new URLSearchParams(location.search).get('key');
 const joinUrl=location.origin+'/';document.getElementById('url').textContent=joinUrl;
 try{new QRCode(document.getElementById('qrbox'),{text:joinUrl,width:160,height:160})}catch(e){}
-const act=a=>fetch('/host?key='+encodeURIComponent(key),{method:'POST',body:JSON.stringify({action:a})});
+const act=(a,quiz)=>fetch('/host?key='+encodeURIComponent(key),{method:'POST',body:JSON.stringify({action:a,quiz})});
+const switchQuiz=q=>{if(confirm('Switch quiz? This clears all current players and scores.'))act('quiz',q)};
+const picker=v=>'<div class="small" style="color:#555">Quiz (switching clears players &amp; scores)</div><div class="row"><button class="btn'+(v.quiz==='history'?'':' sec')+'" onclick="switchQuiz(\\'history\\')">JLR History</button><button class="btn'+(v.quiz==='bond'?'':' sec')+'" onclick="switchQuiz(\\'bond\\')">Bond Cars</button></div>';
 const es=new EventSource('/events?role=host&key='+encodeURIComponent(key));
 es.onmessage=e=>{const v=JSON.parse(e.data);
  document.getElementById('st').textContent=v.q>=0&&v.phase!=='end'?'– Q'+(v.q+1)+'/'+v.total:'';
  document.getElementById('lb').innerHTML=v.board.slice(0,15).map(p=>'<tr><td>'+p.rank+'</td><td>'+p.name+'</td><td>'+p.score+'</td></tr>').join('')||'<tr><td class="small">No players yet</td></tr>';
  let h='';const L='ABCD';
- if(v.phase==='lobby'){h='<div class="card"><h1>Lobby</h1><p><b>'+v.nPlayers+'</b> players joined.</p>'+(v.next?'<p class="small">First question: '+v.next.text+'</p>':'')+'<button class="btn" onclick="act(\\'next\\')">Start quiz → Question 1</button></div>'}
+ if(v.phase==='lobby'){h='<div class="card"><h1>Lobby – '+v.title+'</h1>'+picker(v)+'<p><b>'+v.nPlayers+'</b> players joined.</p>'+(v.next?'<p class="small">First question: '+v.next.text+'</p>':'')+'<button class="btn" onclick="act(\\'next\\')">Start quiz → Question 1</button></div>'}
  else if(v.phase==='question'||v.phase==='reveal'){const c=v.cur;
-  h='<div class="card"><div class="q">'+(v.q+1)+'. '+c.text+'</div>'+c.options.map((o,i)=>'<div class="opt'+(v.phase==='reveal'&&i===c.correct?' ok':'')+'"><span>'+L[i]+'. '+o+(i===c.correct?' ✔':'')+'</span><span>'+v.counts[i]+'</span></div>').join('')+
+  h='<div class="card"><div class="small" style="color:#b3202a">'+v.round+'</div><div class="q">'+(v.q+1)+'. '+c.text+'</div>'+(v.img?'<img src="'+v.img+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin:8px 0" onerror="this.style.display=\\'none\\'">':'')+c.options.map((o,i)=>'<div class="opt'+(v.phase==='reveal'&&i===c.correct?' ok':'')+'"><span>'+L[i]+'. '+o+(i===c.correct?' ✔':'')+'</span><span>'+v.counts[i]+'</span></div>').join('')+
   '<p class="small">Answered: '+v.answered+' / '+v.nPlayers+'</p>'+(v.phase==='reveal'?'<p>💡 '+c.fact+'</p>':'')+'</div>';
   if(v.phase==='question')h+='<button class="btn" onclick="act(\\'reveal\\')">Close answers &amp; reveal</button>';
   else h+='<button class="btn" onclick="act(\\'next\\')">'+(v.q+1>=v.total?'Finish – final results':'Next question → '+(v.q+2))+'</button>'+(v.next?'<div class="card"><b>Coming up:</b> '+v.next.text+'</div>':'');}
- else if(v.phase==='end'){h='<div class="card"><h1>🏆 Final results</h1><p>See the leaderboard →</p></div>'}
+ else if(v.phase==='end'){h='<div class="card"><h1>🏆 Final results</h1><p>See the leaderboard →</p>'+picker(v)+'</div>'}
  h+='<button class="btn sec" onclick="if(confirm(\\'Reset the whole game and remove all players?\\'))act(\\'reset\\')">Reset game</button>';
  document.getElementById('main').innerHTML=h}
 </script></body></html>`;
@@ -195,12 +224,15 @@ es.onmessage=e=>{const v=JSON.parse(e.data);
 const BOARD = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Leaderboard</title><style>${CSS}
 .wrap{max-width:1000px}h1{font-size:44px}table{width:100%;font-size:32px;border-collapse:collapse}td{padding:8px 12px;border-bottom:1px solid #ffffff22}td:first-child{width:70px;color:#c9a24b;font-weight:800}td:last-child{text-align:right;font-weight:800}
 .row{display:flex;gap:30px;align-items:flex-start}#qrbox{background:#fff;padding:12px;border-radius:12px}.ans{font-size:36px;color:#7be39d;margin:10px 0}</style></head><body><div class="wrap">
-<h1>🎄 JLR Christmas Quiz</h1><div class="row"><div style="flex:1"><div class="ans" id="ans"></div><table id="lb"></table></div><div class="center"><div id="qrbox"></div><div class="small" id="url" style="margin-top:8px"></div></div></div></div>${QR}
+<h1 id="ttl">🎄 JLR Christmas Quiz</h1><div class="row"><div style="flex:1"><div class="ans" id="ans"></div><div id="pic"></div><table id="lb"></table></div><div class="center"><div id="qrbox"></div><div class="small" id="url" style="margin-top:8px"></div></div></div></div>${QR}
 <script>
 const joinUrl=location.origin+'/';document.getElementById('url').textContent='Scan to join';
 try{new QRCode(document.getElementById('qrbox'),{text:joinUrl,width:200,height:200})}catch(e){}
 const es=new EventSource('/events?role=board');
 es.onmessage=e=>{const v=JSON.parse(e.data);
  document.getElementById('ans').textContent=v.reveal?'Answer: '+v.reveal.letter+' – '+v.reveal.text:(v.phase==='end'?'🏆 Final results':'');
+ document.getElementById('ttl').textContent='🎄 '+v.title;
+ document.getElementById('pic').innerHTML=v.img?'<img src="'+v.img+'" style="width:100%;max-height:55vh;object-fit:contain;border-radius:12px;margin-bottom:14px" onerror="this.style.display=\\'none\\'">':'';
+ document.getElementById('lb').style.display=v.img&&v.phase==='question'?'none':'table';
  document.getElementById('lb').innerHTML=v.board.slice(0,10).map(p=>'<tr><td>'+p.rank+'</td><td>'+p.name+'</td><td>'+p.score+'</td></tr>').join('')}
 </script></body></html>`;
